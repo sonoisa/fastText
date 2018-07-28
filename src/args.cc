@@ -30,6 +30,7 @@ Args::Args() {
   bucket = 2000000;
   minn = 3;
   maxn = 6;
+  cjkminn = 2;
   thread = 12;
   lrUpdateRate = 100;
   t = 1e-4;
@@ -140,6 +141,8 @@ void Args::parseArgs(const std::vector<std::string>& args) {
         minn = std::stoi(args.at(ai + 1));
       } else if (args[ai] == "-maxn") {
         maxn = std::stoi(args.at(ai + 1));
+      } else if (args[ai] == "-cjk_minn") {
+        cjkminn = std::stoi(args[ai + 1]);
       } else if (args[ai] == "-thread") {
         thread = std::stoi(args.at(ai + 1));
       } else if (args[ai] == "-t") {
@@ -213,6 +216,7 @@ void Args::printDictionaryHelp() {
     << "  -bucket             number of buckets [" << bucket << "]\n"
     << "  -minn               min length of char ngram [" << minn << "]\n"
     << "  -maxn               max length of char ngram [" << maxn << "]\n"
+    << "  -cjk_minn           min length of CJK char ngram [" << cjkminn << "]\n"
     << "  -t                  sampling threshold [" << t << "]\n"
     << "  -label              labels prefix [" << label << "]\n";
 }
@@ -254,6 +258,7 @@ void Args::save(std::ostream& out) {
   out.write((char*) &(bucket), sizeof(int));
   out.write((char*) &(minn), sizeof(int));
   out.write((char*) &(maxn), sizeof(int));
+  out.write((char*) &(cjkminn), sizeof(int));
   out.write((char*) &(lrUpdateRate), sizeof(int));
   out.write((char*) &(t), sizeof(double));
 }
@@ -270,6 +275,7 @@ void Args::load(std::istream& in) {
   in.read((char*) &(bucket), sizeof(int));
   in.read((char*) &(minn), sizeof(int));
   in.read((char*) &(maxn), sizeof(int));
+  in.read((char*) &(cjkminn), sizeof(int));
   in.read((char*) &(lrUpdateRate), sizeof(int));
   in.read((char*) &(t), sizeof(double));
 }
@@ -286,6 +292,7 @@ void Args::dump(std::ostream& out) const {
   out << "bucket" << " " << bucket << std::endl;
   out << "minn" << " " << minn << std::endl;
   out << "maxn" << " " << maxn << std::endl;
+  out << "cjk_maxn" << " " << cjkminn << std::endl;
   out << "lrUpdateRate" << " " << lrUpdateRate << std::endl;
   out << "t" << " " << t << std::endl;
 }

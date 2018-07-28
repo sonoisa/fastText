@@ -149,18 +149,31 @@ uint32_t Dictionary::hash(const std::string& str) const {
   return h;
 }
 
+bool isCJK(const std::string& character) {
+  return character.compare("\u4E00") >= 0 && character.compare("\u9FEF") <= 0;
+}
+
 void Dictionary::computeSubwords(const std::string& word,
                                std::vector<int32_t>& ngrams,
                                std::vector<std::string>& substrings) const {
-  for (size_t i = 0; i < word.size(); i++) {
+  size_t wordSize = word.size();
+  for (size_t i = 0; i < wordSize; i++) {
     std::string ngram;
     if ((word[i] & 0xC0) == 0x80) continue;
-    for (size_t j = i, n = 1; j < word.size() && n <= args_->maxn; n++) {
+    bool cjkOnly = true;
+    for (size_t j = i, n = 1; j < wordSize && n <= args_->maxn; n++) {
+      size_t charStartIndex = j;
+      std::string character;
+      character.push_back(word[j]);
       ngram.push_back(word[j++]);
-      while (j < word.size() && (word[j] & 0xC0) == 0x80) {
+      while (j < wordSize && (word[j] & 0xC0) == 0x80) {
+        character.push_back(word[j]);
         ngram.push_back(word[j++]);
       }
-      if (n >= args_->minn && !(n == 1 && (i == 0 || j == word.size()))) {
+      if (cjkOnly && charStartIndex > 0 && charStartIndex < wordSize - 1) {
+        cjkOnly &= isCJK(character);
+      }
+      if (n >= (cjkOnly? args_->cjkminn : args_->minn) && !(n == 1 && (i == 0 || j == wordSize))) {
         int32_t h = hash(ngram) % args_->bucket;
         ngrams.push_back(nwords_ + h);
         substrings.push_back(ngram);
@@ -171,15 +184,24 @@ void Dictionary::computeSubwords(const std::string& word,
 
 void Dictionary::computeSubwords(const std::string& word,
                                std::vector<int32_t>& ngrams) const {
+  size_t wordSize = word.size();
   for (size_t i = 0; i < word.size(); i++) {
     std::string ngram;
     if ((word[i] & 0xC0) == 0x80) continue;
+    bool cjkOnly = true;
     for (size_t j = i, n = 1; j < word.size() && n <= args_->maxn; n++) {
+      size_t charStartIndex = j;
+      std::string character;
+      character.push_back(word[j]);
       ngram.push_back(word[j++]);
       while (j < word.size() && (word[j] & 0xC0) == 0x80) {
+        character.push_back(word[j]);
         ngram.push_back(word[j++]);
       }
-      if (n >= args_->minn && !(n == 1 && (i == 0 || j == word.size()))) {
+      if (cjkOnly && charStartIndex > 0 && charStartIndex < wordSize - 1) {
+        cjkOnly &= isCJK(character);
+      }
+      if (n >= (cjkOnly? args_->cjkminn : args_->minn) && !(n == 1 && (i == 0 || j == word.size()))) {
         int32_t h = hash(ngram) % args_->bucket;
         pushHash(ngrams, h);
       }

@@ -43,6 +43,7 @@ class Args {
     int bucket;
     int minn;
     int maxn;
+    int cjkminn;
     int thread;
     double t;
     std::string label;
